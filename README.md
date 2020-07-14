@@ -3,8 +3,6 @@
 A flutter plugin for handling PDF files. Works on both Android & iOS. Originally forked from https://github.com/lohanidamodar/pdf_viewer that originally forked from https://github.com/CrossPT/flutter_plugin_pdf_viewer.
 
 
-## This project is only for solving an issue where advance_pdf_viewer's bottom navigation is not hidden.
-
 [![Pub Package](https://img.shields.io/pub/v/advance_pdf_viewer_fork.svg?style=flat-square)](https://pub.dartlang.org/packages/advance_pdf_viewer)
 
 
