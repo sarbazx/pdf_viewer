@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.6+1
+* Fixed an error where the pdf viewer disappeared when a value of false was entered for showNavigation
+
 ## 1.1.6
 * Exposing `ZoomableWidget` from [flutter_advanced_networkimage](https://pub.dartlang.org/packages/flutter_advanced_networkimage) parameters (minScale, zoomSteps, maxScale,panLimit)
 

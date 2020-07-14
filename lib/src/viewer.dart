@@ -192,7 +192,7 @@ class _PDFViewerState extends State<PDFViewer> {
         children: <Widget>[
           PageView.builder(
             physics: _swipeEnabled && widget.enableSwipeNavigation
-                ? null
+                ? AlwaysScrollableScrollPhysics()
                 : NeverScrollableScrollPhysics(),
             onPageChanged: (page) {
               setState(() {
@@ -298,7 +298,7 @@ class _PDFViewerState extends State<PDFViewer> {
                     ],
                   ),
                 )
-          : Container(),
+          : null,
     );
   }
 }
