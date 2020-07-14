@@ -1,5 +1,5 @@
 name: advance_pdf_viewer_example
-description: Demonstrates how to use the advance_pdf_viewer plugin.
+description: Demonstrates how to use the advance_pdf_viewer_fork plugin.
 publish_to: 'none'
 
 environment:
@@ -17,7 +17,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  advance_pdf_viewer:
+  advance_pdf_viewer_fork:
     path: ../
 
 flutter:

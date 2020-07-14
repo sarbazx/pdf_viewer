@@ -1,4 +1,4 @@
-library advance_pdf_viewer;
+library advance_pdf_viewer_fork;
 
 export 'src/document.dart' show PDFDocument;
 export 'src/page.dart' show PDFPage;
