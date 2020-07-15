@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.7+1
+* Handle iOS bug.
+
 ## 1.1.7
 * Add new widget PDFListViewer.
 
