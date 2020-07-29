@@ -76,6 +76,14 @@ public class FlutterPluginPdfViewerPlugin implements MethodCallHandler {
                                 }
                             });
                             break;
+                        case "clearCache":
+                            clearCacheDir();
+                            mainThreadHandler.post(new Runnable() {
+                                @Override
+                                public  void run() {
+                                    result.success("clearCache");
+                                }
+                            });
                         default:
                             result.notImplemented();
                             break;
@@ -91,6 +99,7 @@ public class FlutterPluginPdfViewerPlugin implements MethodCallHandler {
             PdfRenderer renderer = new PdfRenderer(ParcelFileDescriptor.open(pdf, ParcelFileDescriptor.MODE_READ_ONLY));
             Bitmap bitmap;
             final int pageCount = renderer.getPageCount();
+            renderer.close();
             return String.format("%d", pageCount);
         } catch (Exception ex) {
             ex.printStackTrace();

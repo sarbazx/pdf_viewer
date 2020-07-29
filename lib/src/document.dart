@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:advance_pdf_viewer_fork/src/page.dart';
@@ -12,8 +13,10 @@ class PDFDocument {
 
   String _filePath;
   int count;
-  List<PDFPage> _pages = [];
+  List<PDFPage> pages = [];
+  List<Image> images = [];
   bool _preloaded = false;
+  bool _imagePreloaded = false;
 
   /// Load a PDF File from a given File
   ///
@@ -24,7 +27,8 @@ class PDFDocument {
     try {
       var pageCount =
           await _channel.invokeMethod('getNumberOfPages', {'filePath': f.path});
-      document.count = document.count = int.parse(pageCount);
+      // document.count = document.count = int.parse(pageCount);
+      document.count = int.parse(pageCount);
     } catch (e) {
       throw Exception('Error reading PDF!');
     }
@@ -43,7 +47,7 @@ class PDFDocument {
     try {
       var pageCount =
           await _channel.invokeMethod('getNumberOfPages', {'filePath': f.path});
-      document.count = document.count = int.parse(pageCount);
+      document.count = int.parse(pageCount);
     } catch (e) {
       throw Exception('Error reading PDF!');
     }
@@ -70,7 +74,7 @@ class PDFDocument {
     try {
       var pageCount = await _channel
           .invokeMethod('getNumberOfPages', {'filePath': file.path});
-      document.count = document.count = int.parse(pageCount);
+      document.count = int.parse(pageCount);
     } catch (e) {
       throw Exception('Error reading PDF!');
     }
@@ -89,7 +93,7 @@ class PDFDocument {
     final double panLimit,
   }) async {
     assert(page > 0);
-    if (_preloaded && _pages.isNotEmpty) return _pages[page - 1];
+    if (_preloaded && pages.isNotEmpty) return pages[page - 1];
     var data = await _channel
         .invokeMethod('getPage', {'filePath': _filePath, 'pageNumber': page});
     return new PDFPage(
@@ -103,6 +107,16 @@ class PDFDocument {
     );
   }
 
+  Future<Image> getImage({
+    int page = 1
+  }) async {
+    assert(page > 0);
+    if(_imagePreloaded && images[page - 1] != null) return images[page - 1];
+    var data = await _channel
+        .invokeMethod('getPage', {'filePath': _filePath, 'pageNumber': page});
+    return new Image.file(File(data));
+  }
+
   Future<void> preloadPages({
     final Function(double) onZoomChanged,
     final int zoomSteps,
@@ -111,10 +125,12 @@ class PDFDocument {
     final double panLimit,
   }) async {
     int countvar = 1;
+    if(_preloaded || pages.length != 0) return;
+    pages = List(count);
     await Future.forEach<int>(List(count), (i) async {
       final data = await _channel.invokeMethod(
           'getPage', {'filePath': _filePath, 'pageNumber': countvar});
-      _pages.add(PDFPage(
+      pages[countvar - 1] = PDFPage(
         data,
         countvar,
         onZoomChanged: onZoomChanged,
@@ -122,16 +138,29 @@ class PDFDocument {
         minScale: minScale,
         maxScale: maxScale,
         panLimit: panLimit,
-      ));
+      );
       countvar++;
     });
     _preloaded = true;
   }
 
+  Future<void> preloadImages() async {
+    int countvar = 1;
+    if(_imagePreloaded && images != null) return;
+    images = List(count);
+    await Future.forEach<int>(List(count), (_) async {
+      if(images == null) return;
+      final data = await _channel.invokeMethod(
+        'getPage', {'filePath': _filePath, 'pageNumber': countvar});
+      if(images != null) images[countvar - 1] = Image.file(File(data));
+      countvar++;
+    });
+    _imagePreloaded = true;
+  }
+
   // Stream all pages
   Stream<PDFPage> getAll({final Function(double) onZoomChanged}) {
     return Future.forEach<PDFPage>(List(count), (i) async {
-      print(i);
       final data = await _channel
           .invokeMethod('getPage', {'filePath': _filePath, 'pageNumber': i});
       return new PDFPage(
@@ -140,5 +169,19 @@ class PDFDocument {
         onZoomChanged: onZoomChanged,
       );
     }).asStream();
+  }
+
+  void clearImageCache() {
+    if(images != null && images.length != 0){
+      for(var i = 0; i < images.length; i++) {
+        if(images[i] != null) images[i].image.evict();
+      }
+      images = null;
+    }
+    _imagePreloaded = false;
+  }
+
+  void clearFileCache() async {
+    await _channel.invokeMethod('clearCache');
   }
 }

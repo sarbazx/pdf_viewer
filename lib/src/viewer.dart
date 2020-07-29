@@ -69,14 +69,20 @@ class _PDFViewerState extends State<PDFViewer> {
     _pages = List(widget.document.count);
     _pageController = widget.controller ?? PageController();
     _pageNumber = _pageController.initialPage + 1;
-    if (!widget.lazyLoad)
-      widget.document.preloadPages(
-        onZoomChanged: onZoomChanged,
-        zoomSteps: widget.zoomSteps,
-        minScale: widget.minScale,
-        maxScale: widget.maxScale,
-        panLimit: widget.panLimit,
-      );
+    if(!widget.lazyLoad){
+      if(mounted) setState(() { _isLoading = true; });
+      Future.delayed(Duration.zero, () async {
+        await widget.document.preloadPages(
+          onZoomChanged: onZoomChanged,
+          zoomSteps: widget.zoomSteps,
+          minScale: widget.minScale,
+          maxScale: widget.maxScale,
+          panLimit: widget.panLimit,
+        );
+        _pages = widget.document.pages;
+        if(mounted) setState(() { _isLoading = false; });
+      });
+    }
   }
 
   @override
@@ -94,6 +100,13 @@ class _PDFViewerState extends State<PDFViewer> {
     super.didUpdateWidget(oldWidget);
   }
 
+  @override
+  void dispose(){
+    if(widget.controller != null) widget.controller.dispose();
+    widget.document.clearFileCache();
+    super.dispose();
+  }
+
   onZoomChanged(double scale) {
     if (scale != 1.0) {
       setState(() {
@@ -107,19 +120,21 @@ class _PDFViewerState extends State<PDFViewer> {
   }
 
   _loadPage() async {
-    if (_pages[_pageNumber - 1] != null) return;
+    var num = _pageNumber;
+    if (_pages[num - 1] != null) return;
+    if (!widget.lazyLoad) return;
     setState(() {
       _isLoading = true;
     });
     final data = await widget.document.get(
-      page: _pageNumber,
+      page: num,
       onZoomChanged: onZoomChanged,
       zoomSteps: widget.zoomSteps,
       minScale: widget.minScale,
       maxScale: widget.maxScale,
       panLimit: widget.panLimit,
     );
-    _pages[_pageNumber - 1] = data;
+    _pages[num - 1] = data;
     if (mounted) {
       setState(() {
         _isLoading = false;

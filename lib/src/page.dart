@@ -28,6 +28,8 @@ class PDFPage extends StatefulWidget {
 
 class _PDFPageState extends State<PDFPage> {
   ImageProvider provider;
+  ImageStream _resolver;
+  ImageStreamListener _listener;
 
   @override
   void didChangeDependencies() {
@@ -45,10 +47,20 @@ class _PDFPageState extends State<PDFPage> {
 
   _repaint() {
     provider = FileImage(File(widget.imgPath));
-    final resolver = provider.resolve(createLocalImageConfiguration(context));
-    resolver.addListener(ImageStreamListener((imgInfo, alreadyPainted) {
+    _resolver = provider.resolve(createLocalImageConfiguration(context));
+    _listener = ImageStreamListener((imgInfo, alreadyPainted) {
       if (!alreadyPainted) setState(() {});
-    }));
+    });
+    _resolver.addListener(_listener);
+  }
+
+  @override
+  void dispose() {
+    if(_resolver != null && _listener != null) {
+      _resolver.removeListener(_listener);
+      provider.evict();
+    }
+    super.dispose();
   }
 
   @override

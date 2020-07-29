@@ -5,46 +5,92 @@ import 'package:flutter/material.dart';
 
 class PDFListViewer extends StatefulWidget {
   final PDFDocument document;
-  List<PDFPage> _pages;
+  List<Image> _images;
+  final bool preload;
+  double _loadingPageHeight;
 
   PDFListViewer({
     Key key,
     @required this.document,
-  }) : super(key: key);
+    this.preload = false,
+    double loadingPageHeight = 400,
+  }) : super(key: key) {
+    _loadingPageHeight = loadingPageHeight;
+  }
 
   @override
   _PDFListViewerState createState() => _PDFListViewerState();
 }
 
 class _PDFListViewerState extends State<PDFListViewer> {
-  int _loaded = 0;
+  bool _preloaded = false;
 
   @override
   void initState() {
-    widget._pages = List(widget.document.count);
-    widget.document.preloadPages().then((value) {
-      for (var i = 0; i < widget.document.count; i++) {
-        widget.document.get(page: i + 1).then((value) {
-          widget._pages[i] = value;
-          _loaded++;
-          if (_loaded == widget.document.count) setState(() {});
-        });
-      }
-    });
     super.initState();
+    widget._images = List<Image>(widget.document.count);
+    if(widget.preload){
+      Future.delayed(Duration.zero, () async {
+        await widget.document.preloadImages();
+        widget._images = widget.document.images;
+        _preloaded = true;
+        if(mounted) setState(() {});
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    for(var i = 0; i < widget._images.length; i++) if(widget._images[i].image != null) {
+      widget._images[i].image.evict();
+      widget._images[i] = null;
+    }
+    widget._images = null;
+    widget.document.clearImageCache();
+    widget.document.clearFileCache();
+    super.dispose();
+  }
+
+  _loadPage(int index) async {
+    if(index < 0 || index >= widget._images.length) return null;
+    if(widget._images[index] != null) return widget._images[index];
+    final data = await widget.document.getImage(page: index + 1);
+    widget._images[index] = data;
+    return widget._images[index];
   }
 
   @override
   Widget build(BuildContext context) {
-    return _loaded == widget.document.count
+    return widget.preload
+      ? _preloaded
         ? ListView.builder(
             itemCount: widget.document.count,
             itemBuilder: (context, index) {
-              return Image.file(File(widget._pages[index].imgPath));
-            },
+              return widget._images[index];
+            }
           )
         : Center(
             child: CircularProgressIndicator(),
-          );
+          )
+      : ListView.builder(
+        itemCount: widget.document.count,
+        itemBuilder: (context, index) => FutureBuilder(
+          future: () async {return await _loadPage(index);}(),
+          builder: (context, snapShot){
+            if(snapShot.hasData) {
+              return snapShot.data;
+            }
+            else {
+              return Container(
+                height: widget._loadingPageHeight,
+                width: double.maxFinite,
+                child: Center(
+                  child: CircularProgressIndicator()
+                ),
+              );
+            }
+          }
+        ),
+      );
   }
 }

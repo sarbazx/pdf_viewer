@@ -1,7 +1,17 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:advance_pdf_viewer_fork/advance_pdf_viewer_fork.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(App());
+
+class App extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: MyApp(),
+    );
+  }
+}
 
 class MyApp extends StatefulWidget {
   @override
@@ -11,6 +21,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   bool _isLoading = true;
   PDFDocument document;
+  bool _usePDFListView = false;
 
   @override
   void initState() {
@@ -18,9 +29,15 @@ class _MyAppState extends State<MyApp> {
     loadDocument();
   }
 
+  @override
+  void dispose() {
+    document.clearImageCache();
+    document = null;
+    super.dispose();
+  }
+
   loadDocument() async {
     document = await PDFDocument.fromAsset('assets/sample.pdf');
-
     setState(() => _isLoading = false);
   }
 
@@ -39,39 +56,53 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        drawer: Drawer(
-          child: Column(
-            children: <Widget>[
-              SizedBox(height: 36),
-              ListTile(
-                title: Text('Load from Assets'),
-                onTap: () {
-                  changePDF(1);
-                },
-              ),
-              ListTile(
-                title: Text('Load from URL'),
-                onTap: () {
-                  changePDF(2);
-                },
-              ),
-              ListTile(
-                title: Text('Restore default'),
-                onTap: () {
-                  changePDF(3);
-                },
-              ),
-            ],
-          ),
-        ),
-        appBar: AppBar(
-          title: const Text('FlutterPluginPDFViewer'),
-        ),
-        body: Column(
+    return Scaffold(
+      drawer: Drawer(
+        child: Column(
           children: <Widget>[
-            Expanded(
+            SizedBox(height: 36),
+            ListTile(
+              title: Text('Load from Assets'),
+              onTap: () {
+                changePDF(1);
+              },
+            ),
+            ListTile(
+              title: Text('Load from URL'),
+              onTap: () {
+                changePDF(2);
+              },
+            ),
+            ListTile(
+              title: Text('Restore default'),
+              onTap: () {
+                changePDF(3);
+              },
+            ),
+          ],
+        ),     
+      ),
+      appBar: AppBar(
+        title: const Text('FlutterPluginPDFViewer'),
+        actions: <Widget>[
+          GestureDetector(
+            onTap: (){
+              _usePDFListView = !_usePDFListView;
+              setState(() {});
+            },
+            child: Icon(
+              Icons.cached
+            ),
+          ),
+          SizedBox(
+            width: 15,
+          )
+        ],
+      ),
+      body: Column(
+        children: <Widget>[
+          !_usePDFListView
+          ? Expanded(
               child: Center(
                 child: _isLoading
                     ? Center(child: CircularProgressIndicator())
@@ -83,8 +114,9 @@ class _MyAppState extends State<MyApp> {
                         // uncomment below line to scroll vertically
                         // scrollDirection: Axis.vertical,
 
+                        enableSwipeNavigation: false,
                         showPicker: false,
-                        showNavigation: false,
+                        showNavigation: true,
                         //uncomment below code to replace bottom navigation with your own
                         /* navigationBuilder:
                             (context, page, totalPages, jumpToPage, animateToPage) {
@@ -120,13 +152,16 @@ class _MyAppState extends State<MyApp> {
                         }, */
                       ),
               ),
+            )
+          : Expanded(
+              child: _isLoading 
+                ? Center(child: CircularProgressIndicator(),)
+                : PDFListViewer(
+                    document: document,
+                    preload: true,
+                  ),
             ),
-            Expanded(
-                child: PDFListViewer(
-              document: document,
-            )),
-          ],
-        ),
+        ],
       ),
     );
   }
