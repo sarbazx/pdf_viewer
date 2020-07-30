@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:advance_pdf_viewer_fork/advance_pdf_viewer_fork.dart';
 import 'package:flutter/material.dart';
 

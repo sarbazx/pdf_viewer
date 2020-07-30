@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:ui';
+import 'package:advance_pdf_viewer_fork/src/zoom.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/painting.dart';
-import 'package:flutter_advanced_networkimage/zoomable.dart';
 
 class PDFPage extends StatefulWidget {
   final String imgPath;
@@ -66,14 +66,16 @@ class _PDFPageState extends State<PDFPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: null,
-        child: ZoomableWidget(
-          onZoomChanged: widget.onZoomChanged,
-          zoomSteps: widget.zoomSteps ?? 3,
-          minScale: widget.minScale ?? 1.0,
-          panLimit: widget.panLimit ?? 1.0,
-          maxScale: widget.maxScale ?? 5.0,
-          child: Image(image: provider),
-        ));
+      decoration: null,
+      child: CustomZoomableWidget(
+        onZoomChanged: widget.onZoomChanged,
+        zoomSteps: widget.zoomSteps ?? 3,
+        minScale: widget.minScale ?? 1.0,
+        panLimit: widget.panLimit ?? 1.0,
+        maxScale: widget.maxScale ?? 5.0,
+        autoCenter: true,
+        child: Image(image: provider),
+      )
+    );
   }
 }

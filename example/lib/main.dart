@@ -114,7 +114,7 @@ class _MyAppState extends State<MyApp> {
                         // uncomment below line to scroll vertically
                         // scrollDirection: Axis.vertical,
 
-                        enableSwipeNavigation: false,
+                        // enableSwipeNavigation: false,
                         showPicker: false,
                         showNavigation: true,
                         //uncomment below code to replace bottom navigation with your own
