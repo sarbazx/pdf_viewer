@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.8+1
+* Fix critical error - pdf is not loaded.
+
 ## 1.1.8
 * Fix memory issue.
 * Allow panning only when zoomed in or out.
