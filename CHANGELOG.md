@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.8
+* Fix memory issue.
+* Allow panning only when zoomed in or out.
+
 ## 1.1.7+1
 * Handle iOS bug.
 
