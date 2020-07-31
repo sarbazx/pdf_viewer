@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.8+2
+* Fix errors that sometimes do not delete the image cache.
+
 ## 1.1.8+1
 * Fix critical error - pdf is not loaded.
 

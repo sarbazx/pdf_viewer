@@ -30,6 +30,7 @@ class _PDFPageState extends State<PDFPage> {
   ImageProvider provider;
   ImageStream _resolver;
   ImageStreamListener _listener;
+  bool _repainting = false;
 
   @override
   void didChangeDependencies() {
@@ -45,21 +46,28 @@ class _PDFPageState extends State<PDFPage> {
     }
   }
 
-  _repaint() {
-    provider = FileImage(File(widget.imgPath));
+  _isRepainting() => _repainting;
+
+  _repaint() async {
+    if(_repainting) await Future.doWhile(() => _isRepainting());
+    _repainting = true;
+    if(_resolver != null && _listener != null) _resolver.removeListener(_listener);
+    if(provider != null) provider.evict();
+    provider = FileImage(File(widget.imgPath), scale: widget.maxScale ?? 1.0);
     _resolver = provider.resolve(createLocalImageConfiguration(context));
     _listener = ImageStreamListener((imgInfo, alreadyPainted) {
-      if (!alreadyPainted) setState(() {});
+      if (mounted && !alreadyPainted) setState(() {});
     });
     _resolver.addListener(_listener);
+    _repainting = false;
   }
 
   @override
   void dispose() {
     if(_resolver != null && _listener != null) {
       _resolver.removeListener(_listener);
-      provider.evict();
     }
+    provider.evict();
     super.dispose();
   }
 
