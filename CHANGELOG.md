@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+* Update work with flutter sdk ver 1.20.1
+* Remove [flutter_advanced_networkimage](https://pub.dev/packages/flutter_advanced_networkimage) dependency.
+
 ## 1.1.8+2
 * Fix errors that sometimes do not delete the image cache.
 

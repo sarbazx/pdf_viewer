@@ -1,7 +1,7 @@
 import 'dart:math';
 
+import 'package:advance_pdf_viewer_fork/src/zoom_utils.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_advanced_networkimage/src/utils.dart' show DoubleTween, OffsetTween; 
 
 class CustomZoomableWidget extends StatefulWidget {
   CustomZoomableWidget({
