@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+* Fix error - Sometimes crashes on Android.
+* Fix error - methods marked with uithread must be executed on the main thread
+
 ## 1.2.0
 * Update work with flutter sdk ver 1.20.1
 * Remove [flutter_advanced_networkimage](https://pub.dev/packages/flutter_advanced_networkimage) dependency.
