@@ -5,13 +5,13 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/painting.dart';
 
 class PDFPage extends StatefulWidget {
-  final String imgPath;
+  final String? imgPath;
   final int num;
-  final Function(double) onZoomChanged;
-  final int zoomSteps;
-  final double minScale;
-  final double maxScale;
-  final double panLimit;
+  final Function(double)? onZoomChanged;
+  final int? zoomSteps;
+  final double? minScale;
+  final double? maxScale;
+  final double? panLimit;
   PDFPage(
     this.imgPath,
     this.num, {
@@ -27,9 +27,9 @@ class PDFPage extends StatefulWidget {
 }
 
 class _PDFPageState extends State<PDFPage> {
-  ImageProvider provider;
-  ImageStream _resolver;
-  ImageStreamListener _listener;
+  ImageProvider? provider;
+  ImageStream? _resolver;
+  ImageStreamListener? _listener;
   bool _repainting = false;
 
   @override
@@ -51,23 +51,23 @@ class _PDFPageState extends State<PDFPage> {
   _repaint() async {
     if(_repainting) await Future.doWhile(() => _isRepainting());
     _repainting = true;
-    if(_resolver != null && _listener != null) _resolver.removeListener(_listener);
-    if(provider != null) provider.evict();
-    provider = FileImage(File(widget.imgPath), scale: widget.maxScale ?? 1.0);
-    _resolver = provider.resolve(createLocalImageConfiguration(context));
+    if(_resolver != null && _listener != null) _resolver!.removeListener(_listener!);
+    if(provider != null) provider!.evict();
+    provider = FileImage(File(widget.imgPath!), scale: widget.maxScale ?? 1.0);
+    _resolver = provider!.resolve(createLocalImageConfiguration(context));
     _listener = ImageStreamListener((imgInfo, alreadyPainted) {
       if (mounted && !alreadyPainted) setState(() {});
     });
-    _resolver.addListener(_listener);
+    _resolver!.addListener(_listener!);
     _repainting = false;
   }
 
   @override
   void dispose() {
     if(_resolver != null && _listener != null) {
-      _resolver.removeListener(_listener);
+      _resolver!.removeListener(_listener!);
     }
-    provider.evict();
+    provider!.evict();
     super.dispose();
   }
 
@@ -82,7 +82,7 @@ class _PDFPageState extends State<PDFPage> {
         panLimit: widget.panLimit ?? 1.0,
         maxScale: widget.maxScale ?? 5.0,
         autoCenter: true,
-        child: Image(image: provider),
+        child: Image(image: provider!),
       )
     );
   }

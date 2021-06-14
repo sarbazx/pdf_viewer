@@ -14,25 +14,25 @@ class PDFViewer extends StatefulWidget {
   final bool showNavigation;
   final PDFViewerTooltip tooltip;
   final bool enableSwipeNavigation;
-  final Axis scrollDirection;
+  final Axis? scrollDirection;
   final bool lazyLoad;
-  final PageController controller;
-  final int zoomSteps;
-  final double minScale;
-  final double maxScale;
-  final double panLimit;
+  final PageController? controller;
+  final int? zoomSteps;
+  final double? minScale;
+  final double? maxScale;
+  final double? panLimit;
 
   final Widget Function(
     BuildContext,
-    int pageNumber,
-    int totalPages,
+    int? pageNumber,
+    int? totalPages,
     void Function({int page}) jumpToPage,
-    void Function({int page}) animateToPage,
-  ) navigationBuilder;
+    void Function({int? page}) animateToPage,
+  )? navigationBuilder;
 
   PDFViewer(
-      {Key key,
-      @required this.document,
+      {Key? key,
+      required this.document,
       this.scrollDirection,
       this.lazyLoad = true,
       this.indicatorText = Colors.white,
@@ -56,21 +56,24 @@ class PDFViewer extends StatefulWidget {
 
 class _PDFViewerState extends State<PDFViewer> {
   bool _isLoading = true;
-  int _pageNumber;
+  int? _pageNumber;
   bool _swipeEnabled = true;
-  List<PDFPage> _pages;
-  PageController _pageController;
+  List<PDFPage?>? _pages;
+  PageController? _pageController;
   final Duration animationDuration = Duration(milliseconds: 200);
   final Curve animationCurve = Curves.easeIn;
 
   @override
   void initState() {
     super.initState();
-    _pages = List(widget.document.count);
+    _pages = List.filled(widget.document.count!, null, growable: true);
     _pageController = widget.controller ?? PageController();
-    _pageNumber = _pageController.initialPage + 1;
-    if(!widget.lazyLoad){
-      if(mounted) setState(() { _isLoading = true; });
+    _pageNumber = _pageController!.initialPage + 1;
+    if (!widget.lazyLoad) {
+      if (mounted)
+        setState(() {
+          _isLoading = true;
+        });
       Future.delayed(Duration.zero, () async {
         await widget.document.preloadPages(
           onZoomChanged: onZoomChanged,
@@ -80,7 +83,10 @@ class _PDFViewerState extends State<PDFViewer> {
           panLimit: widget.panLimit,
         );
         _pages = widget.document.pages;
-        if(mounted) setState(() { _isLoading = false; });
+        if (mounted)
+          setState(() {
+            _isLoading = false;
+          });
       });
     }
   }
@@ -88,9 +94,9 @@ class _PDFViewerState extends State<PDFViewer> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _pageNumber = _pageController.initialPage + 1;
+    _pageNumber = _pageController!.initialPage + 1;
     _isLoading = true;
-    _pages = List(widget.document.count);
+    _pages = List.filled(widget.document.count!, null, growable: true);
     // _loadAllPages();
     _loadPage();
   }
@@ -101,8 +107,8 @@ class _PDFViewerState extends State<PDFViewer> {
   }
 
   @override
-  void dispose(){
-    if(widget.controller != null) widget.controller.dispose();
+  void dispose() {
+    if (widget.controller != null) widget.controller!.dispose();
     widget.document.clearFileCache();
     super.dispose();
   }
@@ -120,8 +126,8 @@ class _PDFViewerState extends State<PDFViewer> {
   }
 
   _loadPage() async {
-    var num = _pageNumber;
-    if (_pages[num - 1] != null) return;
+    var num = _pageNumber!;
+    if (_pages![num - 1] != null) return;
     if (!widget.lazyLoad) return;
     setState(() {
       _isLoading = true;
@@ -134,7 +140,7 @@ class _PDFViewerState extends State<PDFViewer> {
       maxScale: widget.maxScale,
       panLimit: widget.panLimit,
     );
-    _pages[num - 1] = data;
+    _pages![num - 1] = data;
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -142,30 +148,21 @@ class _PDFViewerState extends State<PDFViewer> {
     }
   }
 
-  _animateToPage({int page}) {
-    _pageController.animateToPage(page != null ? page : _pageNumber - 1,
-        duration: animationDuration, curve: animationCurve);
+  _animateToPage({int? page}) {
+    _pageController!.animateToPage(page != null ? page : _pageNumber! - 1, duration: animationDuration, curve: animationCurve);
   }
 
-  _jumpToPage({int page}) {
-    _pageController.jumpToPage(page != null ? page : _pageNumber - 1);
+  _jumpToPage({int? page}) {
+    _pageController!.jumpToPage(page != null ? page : _pageNumber! - 1);
   }
 
   Widget _drawIndicator() {
     Widget child = GestureDetector(
-        onTap:
-            widget.showPicker && widget.document.count > 1 ? _pickPage : null,
+        onTap: widget.showPicker && widget.document.count! > 1 ? _pickPage : null,
         child: Container(
-            padding:
-                EdgeInsets.only(top: 4.0, left: 16.0, bottom: 4.0, right: 16.0),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4.0),
-                color: widget.indicatorBackground),
-            child: Text("$_pageNumber/${widget.document.count}",
-                style: TextStyle(
-                    color: widget.indicatorText,
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.w400))));
+            padding: EdgeInsets.only(top: 4.0, left: 16.0, bottom: 4.0, right: 16.0),
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(4.0), color: widget.indicatorBackground),
+            child: Text("$_pageNumber/${widget.document.count}", style: TextStyle(color: widget.indicatorText, fontSize: 16.0, fontWeight: FontWeight.w400))));
 
     switch (widget.indicatorPosition) {
       case IndicatorPosition.topLeft:
@@ -185,14 +182,17 @@ class _PDFViewerState extends State<PDFViewer> {
     showDialog<int>(
         context: context,
         builder: (BuildContext context) {
-          return NumberPickerDialog.integer(
-            title: Text(widget.tooltip.pick),
+          return NumberPicker(
             minValue: 1,
-            cancelWidget: Container(),
-            maxValue: widget.document.count,
-            initialIntegerValue: _pageNumber,
+            maxValue: widget.document.count!,
+            value: _pageNumber!,
+            onChanged: (int value) {
+              setState(() {
+                _pageNumber = value;
+              });
+            },
           );
-        }).then((int value) {
+        }).then((int? value) {
       if (value != null) {
         _pageNumber = value;
         _jumpToPage();
@@ -206,9 +206,7 @@ class _PDFViewerState extends State<PDFViewer> {
       body: Stack(
         children: <Widget>[
           PageView.builder(
-            physics: _swipeEnabled && widget.enableSwipeNavigation
-                ? AlwaysScrollableScrollPhysics()
-                : NeverScrollableScrollPhysics(),
+            physics: _swipeEnabled && widget.enableSwipeNavigation ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(),
             onPageChanged: (page) {
               setState(() {
                 _pageNumber = page + 1;
@@ -218,18 +216,16 @@ class _PDFViewerState extends State<PDFViewer> {
             scrollDirection: widget.scrollDirection ?? Axis.horizontal,
             controller: _pageController,
             itemCount: _pages?.length ?? 0,
-            itemBuilder: (context, index) => _pages[index] == null
+            itemBuilder: (context, index) => _pages![index] == null
                 ? Center(
                     child: CircularProgressIndicator(),
                   )
-                : _pages[index],
+                : _pages![index]!,
           ),
-          (widget.showIndicator && !_isLoading)
-              ? _drawIndicator()
-              : Container(),
+          (widget.showIndicator && !_isLoading) ? _drawIndicator() : Container(),
         ],
       ),
-      floatingActionButton: widget.showPicker && widget.document.count > 1
+      floatingActionButton: widget.showPicker && widget.document.count! > 1
           ? FloatingActionButton(
               elevation: 4.0,
               tooltip: widget.tooltip.jump,
@@ -240,9 +236,9 @@ class _PDFViewerState extends State<PDFViewer> {
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: (widget.showNavigation && widget.document.count > 1)
+      bottomNavigationBar: (widget.showNavigation && widget.document.count! > 1)
           ? widget.navigationBuilder != null
-              ? widget.navigationBuilder(
+              ? widget.navigationBuilder!(
                   context,
                   _pageNumber,
                   widget.document.count,
@@ -272,17 +268,15 @@ class _PDFViewerState extends State<PDFViewer> {
                           onPressed: _pageNumber == 1
                               ? null
                               : () {
-                                  _pageNumber--;
-                                  if (1 > _pageNumber) {
+                                  _pageNumber = _pageNumber! - 1;
+                                  if (1 > _pageNumber!) {
                                     _pageNumber = 1;
                                   }
                                   _animateToPage();
                                 },
                         ),
                       ),
-                      widget.showPicker
-                          ? Expanded(child: Text(''))
-                          : SizedBox(width: 1),
+                      widget.showPicker ? Expanded(child: Text('')) : SizedBox(width: 1),
                       Expanded(
                         child: IconButton(
                           icon: Icon(Icons.chevron_right),
@@ -290,8 +284,8 @@ class _PDFViewerState extends State<PDFViewer> {
                           onPressed: _pageNumber == widget.document.count
                               ? null
                               : () {
-                                  _pageNumber++;
-                                  if (widget.document.count < _pageNumber) {
+                                  _pageNumber = _pageNumber! + 1;
+                                  if (widget.document.count! < _pageNumber!) {
                                     _pageNumber = widget.document.count;
                                   }
                                   _animateToPage();
